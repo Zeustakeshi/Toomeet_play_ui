@@ -1,5 +1,7 @@
 "use client";
 
+import { memoizedRefreshToken as refreshToken } from "@/utils/refreshToken";
+import { ACCESS_TOKEN_KEY } from "@/utils/token.constant";
 import axios from "axios";
 import Cookies from "js-cookie";
 
@@ -23,21 +25,18 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
-        const responseData = error?.response?.data;
+        const { response, config } = error;
+        const responseData = response?.data;
+
+        // if refresh token not null get new accessToken
+        if (responseData.code === 1001 && !config.sent) {
+            config.sent = true;
+            await refreshToken();
+
+            if (Cookies.get(ACCESS_TOKEN_KEY)) return api(config);
+        }
+
         return Promise.reject(responseData);
-
-        // if ((status === 401 || status === 403) && !config.sent) {
-        //     config.sent = true;
-
-        //     if (token) {
-        //         config.headers["Authorization"] = `Bearer ${token}`;
-        //     }
-        //     return api(config);
-        // }
-
-        // const message = error?.response?.data?.message;
-        // if (message) return Promise.reject(message);
-        // return Promise.reject(`Đã có lỗi xảy ra vui lòng thử lại sau. `);
     }
 );
 

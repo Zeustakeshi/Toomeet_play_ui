@@ -9,12 +9,12 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import api, { isApiError } from "@/lib/api";
 import { RegisterType, createAccoutSchema } from "@/schema/auth.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 type Props = {};
@@ -25,10 +25,14 @@ const RegisterForm = (props: Props) => {
     const form = useForm<RegisterType>({
         resolver: zodResolver(createAccoutSchema),
     });
+
+    const { toast } = useToast();
+
     const router = useRouter();
 
     const handleSubmit = async (value: RegisterType) => {
         try {
+            setLoading(true);
             await api({
                 method: "POST",
                 url: "/auth/register",
@@ -41,29 +45,33 @@ const RegisterForm = (props: Props) => {
 
             router.push("/auth/verify-message?email=" + value.email);
         } catch (error: any) {
-            if (isApiError(error)) {
-                if (error.code === 1004) {
-                    const { password, email, fullName } = error.errors;
-                    if (password)
-                        form.setError("password", {
-                            message: password,
-                        });
-                    if (email) form.setError("email", { message: email });
-                    if (fullName) form.setError("name", { message: fullName });
-                } else if (error.code === 1002) {
-                    toast({
-                        title: "Tạo tài khoản thất bại",
-                        description: "Địa chỉ email đã tồn tại trên hệ thống.",
+            if (!isApiError(error)) {
+                setLoading(false);
+                return;
+            }
+
+            if (error.code === 1004) {
+                const { password, email, fullName } = error.errors;
+                if (password)
+                    form.setError("password", {
+                        message: password,
                     });
-                } else {
-                    toast({
-                        title: "Tạo tài khoản thất bại",
-                        description:
-                            "Đã có lỗi xảy ra trong quá trình tạo tài khoản.",
-                    });
-                }
+                if (email) form.setError("email", { message: email });
+                if (fullName) form.setError("name", { message: fullName });
+            } else if (error.code === 1002) {
+                toast({
+                    title: "Tạo tài khoản thất bại",
+                    description: "Địa chỉ email đã tồn tại trên hệ thống.",
+                });
+            } else {
+                toast({
+                    title: "Tạo tài khoản thất bại",
+                    description:
+                        "Đã có lỗi xảy ra trong quá trình tạo tài khoản.",
+                });
             }
         }
+        setLoading(false);
     };
 
     return (

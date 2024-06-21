@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import Header from "@/components/header/Header";
 import MaxWidthWrapper from "@/components/wrapper/MaxWidthWrapper";
 import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider } from "@/contexts/AuthProvider";
 
 const roboto = Roboto({ subsets: ["latin"], weight: ["400", "700"] });
 
@@ -21,10 +22,12 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={cn(roboto.className, "font-normal")}>
-                <Header></Header>
-                <MaxWidthWrapper className="w-full h-[calc(100svh-56px)]">
-                    {children}
-                </MaxWidthWrapper>
+                <AuthProvider>
+                    <Header></Header>
+                    <MaxWidthWrapper className="w-full h-[calc(100svh-56px)]">
+                        {children}
+                    </MaxWidthWrapper>
+                </AuthProvider>
                 <Toaster />
             </body>
         </html>

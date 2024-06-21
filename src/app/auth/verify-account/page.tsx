@@ -15,7 +15,7 @@ const page = async ({ params, searchParams }: Props) => {
     const code = searchParams?.code;
 
     if (!code) redirect("/auth/login?error=invalid_validation_code");
-
+    let isRedirect = false;
     try {
         console.log(`url = ${process.env.NEXT_SERVER_URL}/auth/verify-account`);
         await axios({
@@ -25,11 +25,15 @@ const page = async ({ params, searchParams }: Props) => {
                 code,
             },
         });
-        console.log("success_");
-        redirect("/auth/login?success_message=veirify_account_succeess");
+
+        isRedirect = true;
     } catch (error: any) {
         console.log(error?.response?.data);
         console.log("veirify_account_error");
+    }
+
+    if (isRedirect) {
+        redirect("/auth/login?success_message=veirify_account_succeess");
     }
 
     return (

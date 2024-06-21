@@ -1,3 +1,4 @@
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/utils/token.constant";
 import axios from "axios";
 import moment from "moment";
 import { cookies } from "next/headers";
@@ -19,15 +20,13 @@ export const GET = async (req: NextRequest) => {
         },
     });
     const { data } = response.data;
-    const accessTokenExpirationDate = moment(data.accessTokenExpiresIn);
-    const refreshTokenExpirationDate = moment(data.refreshTokenExpiresIn);
 
-    cookies().set("access_token", data.tokens.accessToken, {
-        maxAge: accessTokenExpirationDate.diff(moment(), "seconds"),
+    cookies().set(ACCESS_TOKEN_KEY, data.tokens.accessToken, {
+        maxAge: data.tokens.accessTokenExpiresIn,
     });
 
-    cookies().set("refresh_token", data.tokens.refreshToken, {
-        maxAge: refreshTokenExpirationDate.diff(moment(), "seconds"),
+    cookies().set(REFRESH_TOKEN_KEY, data.tokens.refreshToken, {
+        maxAge: data.tokens.refreshTokenExpiresIn,
     });
 
     redirect("/");
