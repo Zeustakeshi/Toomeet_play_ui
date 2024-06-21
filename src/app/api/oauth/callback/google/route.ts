@@ -1,4 +1,5 @@
 import axios from "axios";
+import moment from "moment";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
@@ -18,12 +19,15 @@ export const GET = async (req: NextRequest) => {
         },
     });
     const { data } = response.data;
+    const accessTokenExpirationDate = moment(data.accessTokenExpiresIn);
+    const refreshTokenExpirationDate = moment(data.refreshTokenExpiresIn);
+
     cookies().set("access_token", data.tokens.accessToken, {
-        maxAge: 3600,
+        maxAge: accessTokenExpirationDate.diff(moment(), "seconds"),
     });
 
     cookies().set("refresh_token", data.tokens.refreshToken, {
-        maxAge: 3600,
+        maxAge: refreshTokenExpirationDate.diff(moment(), "seconds"),
     });
 
     redirect("/");
